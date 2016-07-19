@@ -90,3 +90,8 @@ def dmap(f, d, *path):
     else:
         func = lambda k, v: f(v)
     return {k: func(k, v) for k, v in d.iteritems()}
+
+
+def disjoint_symmetric_diff(s1, s2):
+    return s1 - s2, s2 - s1
+    pass
