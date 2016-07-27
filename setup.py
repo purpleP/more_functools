@@ -7,7 +7,7 @@ setup(
     author='michael',
     install_requires=(
         'six',
-    )
+    ),
     py_modules=['more_functools'],
     author_email='warrior2031@mail.ru',
 )
