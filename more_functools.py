@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 from functools import reduce
-from itertools import tee, islice, izip_longest
+from itertools import tee
+from itertools import islice
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest
 from collections import namedtuple, Mapping
+from six import iteritems
 
 
 class EqualByValue(object):
@@ -43,55 +49,62 @@ def nwise_iter(iterable, n, fillvalue=None):
 
 
 def dict_to_set(dct):
-    return frozenset(
-        (k, transform(v))
-        for k, v in dct.iteritems()
-    )
+    def transform(obj):
+        transformers = (
+            (Mapping, dict_to_set),
+            (list, tuple),
+            (set, frozenset),
+        )
+        transformer = next(
+            (f for cls, f in transformers if isinstance(obj, cls)), lambda x: x
+        )
+        return transformer(obj)
 
-transformers = {
-    (Mapping, dict_to_set),
-    (list, tuple),
-    (set, frozenset),
-}
-
-
-def transform(obj):
-    transformer =  next(
-        (f for cls, f in transformers if isinstance(obj, cls)),
-        lambda x: x
-    )
-    return transformer(obj)
+    return frozenset((k, transform(v)) for k, v in dct.iteritems())
 
 
 def dict_structure(dct):
     return {
-        k: (type(v),) + ((dict_structure(v),) if isinstance(v, Mapping) else ())
+        k: (type(v), dict_structure(v) if isinstance(v, Mapping) else None)
         for k, v in dct.iteritems()
     }
 
 
 def set_to_dict(s, structure):
     return {
-        k: set_to_dict(v, struct[0]) if initial_type == dict else initial_type(v)
+        k: set_to_dict(v, struct) if initial_type == dict else initial_type(v)
         for k, v, initial_type, struct in (
-            (k, v, structure[k][0], structure[k][1:])
+            (k, v, structure[k][0], structure[k][1])
             for k, v in s
         )
     }
 
 
 def dmap(f, d, *path):
-    if path:
-        key, path_tail = path[0], path[1:]
+    key, path_tail = path[0], path[1:]
+    if path_tail:
         if key is None:
             func = lambda k, v: dmap(f, v, *path_tail)
         else:
             func = lambda k, v: dmap(f, v, *path_tail) if k == key else v
     else:
         func = lambda k, v: f(v)
-    return {k: func(k, v) for k, v in d.iteritems()}
+    return {k: func(k, v) for k, v in iteritems(d)}
 
 
 def disjoint_symmetric_diff(s1, s2):
     return s1 - s2, s2 - s1
-    pass
+
+
+def or_default(f, defaults, logger=None):
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            if logger:
+                logger.error(e)
+            try:
+                return defaults[type(e)]
+            except KeyError:
+                raise e
+    return wrapper

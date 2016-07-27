@@ -1,5 +1,7 @@
+from functools import partial
 import pytest
-from lib.utils.common import dict_structure, dict_to_set, set_to_dict, dmap
+from more_functools import dict_structure, dict_to_set, set_to_dict, dmap
+from more_functools import or_default
 
 
 @pytest.fixture()
@@ -49,8 +51,9 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
     assert expected_dict == set_to_dict(expected_set, expected_structure)
 
 
-@pytest.mark.parametrize('input_dict,path,expected_output', (
+@pytest.mark.parametrize('func,input_dict,path,expected_output', (
     (
+        str,
         {
             '0.0': {
                 '1.0': {
@@ -58,16 +61,17 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
                 }
             }
         },
-        (None, None),
+        (None, None, None),
         {
             '0.0': {
                 '1.0': {
-                    '2.0': 2
+                    '2.0': '1'
                 }
             }
         },
     ),
     (
+        str,
         {
             '0.0': {
                 '1.0': {
@@ -80,12 +84,12 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
                 }
             }
         },
-        (None, None, 'k1',),
+        (None, None, 'k1', '2.0'),
         {
             '0.0': {
                 '1.0': {
                     'k1': {
-                        '2.0': 2
+                        '2.0': '1'
                     },
                     'k2': {
                         '2.1': 1
@@ -95,6 +99,19 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
             }
         },
     ),
+    (
+        lambda tup: tuple(map(str, tup)),
+        {'key': (1,)},
+        ('key',),
+        {'key': ('1',)}
+    ),
 ))
-def test_dmap(input_dict, path, expected_output):
-    assert expected_output == dmap(lambda x: x + 1, input_dict, *path)
+def test_dmap(func, input_dict, path, expected_output):
+    assert expected_output == dmap(func, input_dict, *path)
+
+
+def test_or_default():
+    def falling(*args, **kwargs):
+        raise ValueError()
+    f = or_default(falling, {ValueError: 0})
+    assert f() == 0
