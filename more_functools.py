@@ -3,10 +3,6 @@ from functools import reduce
 from itertools import tee
 from itertools import islice
 from itertools import chain
-try:
-    from itertools import izip_longest
-except ImportError:
-    from itertools import zip_longest
 from collections import namedtuple, Mapping
 from six import iteritems as items
 
