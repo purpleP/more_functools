@@ -2,12 +2,13 @@
 from functools import reduce
 from itertools import tee
 from itertools import islice
+from itertools import chain
 try:
     from itertools import izip_longest
 except ImportError:
     from itertools import zip_longest
 from collections import namedtuple, Mapping
-from six import iteritems
+from six import iteritems as items
 
 
 class EqualByValue(object):
@@ -60,13 +61,13 @@ def dict_to_set(dct):
         )
         return transformer(obj)
 
-    return frozenset((k, transform(v)) for k, v in dct.iteritems())
+    return frozenset((k, transform(v)) for k, v in dct.items())
 
 
 def dict_structure(dct):
     return {
         k: (type(v), dict_structure(v) if isinstance(v, Mapping) else None)
-        for k, v in dct.iteritems()
+        for k, v in dct.items()
     }
 
 
@@ -80,6 +81,10 @@ def set_to_dict(s, structure):
     }
 
 
+def replace(dct, key, new_value):
+    return dict(chain(items(dct), ((key, new_value),)))
+
+
 def dmap(f, d, *path):
     key, path_tail = path[0], path[1:]
     if path_tail:
@@ -88,8 +93,8 @@ def dmap(f, d, *path):
         else:
             func = lambda k, v: dmap(f, v, *path_tail) if k == key else v
     else:
-        func = lambda k, v: f(v)
-    return {k: func(k, v) for k, v in iteritems(d)}
+        func = lambda k, v: f(v) if k == key or key is None else v
+    return {k: func(k, v) for k, v in items(d)}
 
 
 def disjoint_symmetric_diff(s1, s2):

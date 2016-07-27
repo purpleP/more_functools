@@ -2,6 +2,7 @@ from functools import partial
 import pytest
 from more_functools import dict_structure, dict_to_set, set_to_dict, dmap
 from more_functools import or_default
+from more_functools import replace
 
 
 @pytest.fixture()
@@ -76,7 +77,8 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
             '0.0': {
                 '1.0': {
                     'k1': {
-                        '2.0': 1
+                        '2.0': 1,
+                        '2.1': 1,
                     },
                     'k2': {
                         '2.1': 1
@@ -89,7 +91,8 @@ def test_set_to_dict(expected_set, expected_structure, expected_dict):
             '0.0': {
                 '1.0': {
                     'k1': {
-                        '2.0': '1'
+                        '2.0': '1',
+                        '2.1': 1,
                     },
                     'k2': {
                         '2.1': 1
@@ -115,3 +118,7 @@ def test_or_default():
         raise ValueError()
     f = or_default(falling, {ValueError: 0})
     assert f() == 0
+
+
+def test_replace():
+    assert replace(dict(a='a', b='b'), 'b', 'c') == dict(a='a', b='c')
