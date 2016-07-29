@@ -97,6 +97,10 @@ def dmap(f, d, *path):
     return {k: func(k, v) for k, v in items(d)}
 
 
+def setifnotin(dct, key, callable):
+    return dct.get(key) or dct.setdefault(key, callable())
+
+
 def disjoint_symmetric_diff(s1, s2):
     return s1 - s2, s2 - s1
 
