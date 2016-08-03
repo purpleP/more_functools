@@ -5,7 +5,9 @@ setup(
     name='more_functools',
     version='0.1',
     author='michael',
+    install_requires=(
+        'six',
+    ),
     py_modules=['more_functools'],
     author_email='warrior2031@mail.ru',
-    description='sqlalchemy based models for ISS',
 )

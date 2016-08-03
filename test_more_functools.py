@@ -31,10 +31,10 @@ def expected_set():
 @pytest.fixture()
 def expected_structure():
     return {
-        '0.0': (set,),
+        '0.0': (set, None),
         '0.1': (
             dict, {
-                '1.0': (set,)
+                '1.0': (set, None)
             }
         )
     }
