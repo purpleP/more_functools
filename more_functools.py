@@ -5,6 +5,7 @@ from itertools import islice
 from itertools import chain
 from collections import namedtuple, Mapping
 from six import iteritems as items
+from six.moves import zip_longest
 
 
 class EqualByValue(object):
@@ -42,7 +43,7 @@ def nwise_iter(iterable, n, fillvalue=None):
         islice(itertor, i, None)
         for i, itertor in enumerate(tee(iterable, n))
     )
-    return izip_longest(*iterators, fillvalue=fillvalue)
+    return zip_longest(*iterators, fillvalue=fillvalue)
 
 
 def dict_to_set(dct):
