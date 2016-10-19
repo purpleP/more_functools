@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from functools import reduce
+from functools import wraps
 from itertools import tee
 from itertools import islice
 from itertools import chain
 from collections import namedtuple, Mapping
 from six import iteritems as items
 from six.moves import zip_longest
+from split import partition
 
 
 class EqualByValue(object):
@@ -19,6 +21,16 @@ class EqualByValue(object):
 def compose(*functions):
     return reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
+
+def unpack(f):
+    """
+    takes function that takes one or more positional arguments
+    and return function that takes one iterable argument
+    """
+    @wraps(f)
+    def wrapper(args):
+        return f(*args)
+    return wrapper
 
 def namedtuple_with_defaults(typename, fields, defaults=()):
     T = namedtuple(typename, fields)
@@ -106,11 +118,32 @@ def or_default(f, defaults, logger=None):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except Exception as e:
+        except defaults.keys() as e:
             if logger:
                 logger.error(e)
-            try:
-                return defaults[type(e)]
-            except KeyError:
-                raise e
+            return next(
+                d for ex_type, d in items(defaults)
+                if isinstance(e, ex_type)
+            )
     return wrapper
+
+
+def concat(desired_type, seq):
+    return reduce(lambda acc, elem: acc + elem, seq, desired_type())
+
+
+def none_to_tuple(value):
+    return (value,) if value is None else ()
+
+
+def merge(a, b, *path):
+    key_value_triples = ((k, a.get(k), b.get(k)) for k in a.keys() | b.keys())
+    def _merge(key, x, y):
+        if isinstance(x, Mapping) and isinstance(y, Mapping):
+            return merge(x, y, *path, key)
+        else:
+            return y
+    return {
+        k: _merge(k, av, bv) if av and bv else av if av else bv
+        for k, av, bv in key_value_triples
+    }

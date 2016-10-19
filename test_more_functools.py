@@ -3,6 +3,10 @@ import pytest
 from more_functools import dict_structure, dict_to_set, set_to_dict, dmap
 from more_functools import or_default
 from more_functools import replace
+from more_functools import compose
+from more_functools import unpack
+from more_functools import concat
+from more_functools import merge
 
 
 @pytest.fixture()
@@ -122,3 +126,24 @@ def test_or_default():
 
 def test_replace():
     assert replace(dict(a='a', b='b'), 'b', 'c') == dict(a='a', b='c')
+
+
+def test_compose():
+    assert compose(str, lambda x: x + 1)(0) == '1'
+
+
+def test_unpack():
+    def f(a, b):
+        return a, b
+    assert unpack(f)(('x', 'y')) == ('x', 'y')
+
+
+def test_concat():
+    a = (b'a', b'b', b'c')
+    assert b'abc' == concat(bytearray, a)
+
+
+def test_merge():
+    defaults = {'a': {'b': 'b'}, 'c': 'c'}
+    new = {'a': {'c': 'c'}}
+    assert {'a': {'b': 'b', 'c': 'c'}, 'c': 'c'} == merge(defaults, new)
