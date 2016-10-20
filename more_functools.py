@@ -133,7 +133,7 @@ def concat(desired_type, seq):
 
 
 def none_to_tuple(value):
-    return (value,) if value is None else ()
+    return () if value is None else (value,)
 
 
 def merge(a, b, *path):
