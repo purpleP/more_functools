@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='more_functools',
     description='more useful higher-order functions and stuff like that',
-    version='0.1',
+    version='1.0',
     author='Michael Doronin',
     install_requires=(
         'six',

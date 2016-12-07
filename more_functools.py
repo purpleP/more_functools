@@ -6,12 +6,11 @@ from itertools import islice
 from itertools import chain
 from collections import namedtuple, Mapping
 from six import iteritems as items
+from six import iterkeys as keys
 from six.moves import zip_longest
-from split import partition
 
 
 class EqualByValue(object):
-
     def __eq__(self, other):
         if type(other) is type(self):
             return self.__dict__ == other.__dict__
@@ -118,7 +117,7 @@ def or_default(f, defaults, logger=None):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except defaults.keys() as e:
+        except tuple(keys(defaults)) as e:
             if logger:
                 logger.error(e)
             return next(
@@ -140,7 +139,7 @@ def merge(a, b, *path):
     key_value_triples = ((k, a.get(k), b.get(k)) for k in a.keys() | b.keys())
     def _merge(key, x, y):
         if isinstance(x, Mapping) and isinstance(y, Mapping):
-            return merge(x, y, *path, key)
+            return merge(x, y, *((path + (key,))))
         else:
             return y
     return {
