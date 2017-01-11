@@ -146,3 +146,13 @@ def merge(a, b, *path):
         k: _merge(k, av, bv) if av and bv else av if av else bv
         for k, av, bv in key_value_triples
     }
+
+
+def curry(f, *c_args, **c_kwargs):
+    @wraps(f)
+    def c(*args, **kwargs):
+        if args or kwargs:
+            return curry(f, *(c_args + args), *{**c_kwargs, **kwargs})
+        else:
+            return f(*c_args, **c_kwargs)
+    return c
