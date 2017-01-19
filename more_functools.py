@@ -127,8 +127,8 @@ def or_default(f, defaults, logger=None):
     return wrapper
 
 
-def concat(desired_type, seq):
-    return reduce(lambda acc, elem: acc + elem, seq, desired_type())
+def concat(sequence, *sequences):
+    return chain(sequence, *sequences) if sequences else chain.from_iterable(sequence)
 
 
 def none_to_tuple(value):
