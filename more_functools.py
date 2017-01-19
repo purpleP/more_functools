@@ -121,8 +121,8 @@ def or_default(f, defaults, logger=None):
             if logger:
                 logger.error(e)
             return next(
-                d for ex_type, d in items(defaults)
-                if isinstance(e, ex_type)
+                d() if callable(d) else d
+                for ex_type, d in items(defaults) if isinstance(e, ex_type)
             )
     return wrapper
 
@@ -146,3 +146,10 @@ def merge(a, b, *path):
         k: _merge(k, av, bv) if av and bv else av if av else bv
         for k, av, bv in key_value_triples
     }
+
+
+# Deliberately py3 only because py2 would look ugly
+def iter_dicts(dct, *dcts, default=None):
+    return (
+        (k, chain((v,), (d.get(k, default) for d in dcts))) for k, v in items(dct)
+    )
