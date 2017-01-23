@@ -4,7 +4,7 @@ from functools import wraps
 from itertools import tee
 from itertools import islice
 from itertools import chain
-from collections import namedtuple, Mapping
+from collections import namedtuple, Mapping, deque
 from six import iteritems as items
 from six import iterkeys as keys
 from six.moves import zip_longest
@@ -153,3 +153,7 @@ def iter_dicts(dct, *dcts, default=None):
     return (
         (k, chain((v,), (d.get(k, default) for d in dcts))) for k, v in items(dct)
     )
+
+
+def last(sequence):
+    return deque(sequence, maxlen=1).pop()
