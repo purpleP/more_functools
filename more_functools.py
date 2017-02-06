@@ -148,12 +148,5 @@ def merge(a, b, *path):
     }
 
 
-# Deliberately py3 only because py2 would look ugly
-def iter_dicts(dct, *dcts, default=None):
-    return (
-        (k, chain((v,), (d.get(k, default) for d in dcts))) for k, v in items(dct)
-    )
-
-
 def last(sequence):
     return deque(sequence, maxlen=1).pop()
