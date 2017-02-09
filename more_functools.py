@@ -4,7 +4,8 @@ from functools import wraps
 from itertools import tee
 from itertools import islice
 from itertools import chain
-from collections import namedtuple, Mapping, deque
+from itertools import permutations
+from collections import namedtuple, defaultdict, Mapping, deque
 from six import iteritems as items
 from six import iterkeys as keys
 from six.moves import zip_longest
@@ -12,9 +13,7 @@ from six.moves import zip_longest
 
 class EqualByValue(object):
     def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
+        return type(other) is type(self) and vars(self) == vars(other)
 
 
 def compose(*functions):
@@ -23,8 +22,15 @@ def compose(*functions):
 
 def unpack(f):
     """
-    takes function that takes one or more positional arguments
-    and return function that takes one iterable argument
+        Takes function that takes one or more positional arguments
+        and return function that takes one iterable argument.
+        Usefull in py3 because you can't do things like that
+        >> a = [(1, 2), (3, 4)]
+        >> map(lambda (x, y): x + y, a)
+        or
+        >> def sum_vector((x1, y1), (x2, y2)):
+        >>     return (x1 + x2, y1 + y2)
+        >> sum_vector((1, 2), (3, 4))
     """
     @wraps(f)
     def wrapper(args):
@@ -150,3 +156,18 @@ def merge(a, b, *path):
 
 def last(sequence):
     return deque(sequence, maxlen=1).pop()
+
+
+class ManyToMany:
+    def __init__(self, **plurals):
+        self.plurals = plurals
+        for a, b in permutations(plurals.values()):
+            setattr(self, a, defaultdict(set))
+
+    def add(self, *pairs, **pair):
+        for (aname, avalue), (_, bvalue) in permutations(pair.items()):
+            getattr(self, self.plurals[aname])[avalue].add(bvalue)
+
+    def remove(self, *pairs, **pair):
+        for (aname, avalue), (_, bvalue) in permutations(pair.items()):
+            getattr(self, self.plurals[aname])[avalue].remove(bvalue)

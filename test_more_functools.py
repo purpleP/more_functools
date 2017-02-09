@@ -7,6 +7,7 @@ from more_functools import compose
 from more_functools import unpack
 from more_functools import concat
 from more_functools import merge
+from more_functools import ManyToMany
 
 
 @pytest.fixture()
@@ -138,12 +139,19 @@ def test_unpack():
     assert unpack(f)(('x', 'y')) == ('x', 'y')
 
 
-def test_concat():
-    a = (b'a', b'b', b'c')
-    assert b'abc' == concat(bytearray, a)
-
-
 def test_merge():
     defaults = {'a': {'b': 'b'}, 'c': 'c'}
     new = {'a': {'c': 'c'}}
     assert {'a': {'b': 'b', 'c': 'c'}, 'c': 'c'} == merge(defaults, new)
+
+
+def test_manytomany():
+    m = ManyToMany(foo='foos', bar='bars')
+    m.add(foo=1, bar=10)
+    m.add(foo=1, bar=11)
+    m.add(foo=2, bar=10)
+    assert {10, 11} == m.foos[1]
+    assert {1, 2} == m.bars[10]
+    m.remove(foo=1, bar=10)
+    assert {11} == m.foos[1]
+    assert {2} == m.bars[10]
