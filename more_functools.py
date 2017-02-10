@@ -165,26 +165,32 @@ class ManyToMany:
         self.singulars = (asingular, bsingular)
         setattr(self, aplural, defaultdict(set))
         setattr(self, bplural, defaultdict(set))
-        self.storages = (getattr(self, aplural), getattr(self, aplural))
+        self.storages = (getattr(self, aplural), getattr(self, bplural))
 
     def to_pair(self, named_pair):
         pair = tuple(named_pair.get(n) for n in self.singulars)
         return () if None in pair else (pair,)
 
     def storage_value(self, *pair, pairs=(), **named_pair):
-        values = pairs + none_to_tuple(pair) + self.to_pair(named_pair)
+        values = concat(pairs, ((pair,) if pair else ()), self.to_pair(named_pair))
         return (
             (self.storages[key_ind][vs[key_ind]], vs[val_ind])
             for vs in values for key_ind, val_ind in ((0, 1), (1, 0))
         )
 
     def add(self, *pair, pairs=(), **named_pair):
-        for s, v in self.storage_value(pair, pairs, **named_pair):
+        for s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
             s.add(v)
 
     def remove(self, *pair, pairs=(), **named_pair):
-        for s, v in self.storage_value(pair, pairs, **named_pair):
+        for s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
             s.remove(v)
+
+    def __len__(self):
+        return sum(map(len, self.storages[0].values())) * len(self.storages[0])
 
     def __contains__(self, pair):
         return all(v in s for s, v in self.storage_value(*pair))
+
+    def __iter__(self):
+        return ((k, v) for k, values in self.storages[0].items() for v in values)
