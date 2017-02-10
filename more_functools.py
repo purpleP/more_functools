@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from collections import namedtuple, defaultdict, Mapping, deque
 from functools import reduce
 from functools import wraps
 from itertools import tee
 from itertools import islice
 from itertools import chain
 from itertools import permutations
-from collections import namedtuple, defaultdict, Mapping, deque
+from operator import itemgetter
+
 from six import iteritems as items
 from six import iterkeys as keys
 from six.moves import zip_longest
@@ -159,15 +161,30 @@ def last(sequence):
 
 
 class ManyToMany:
-    def __init__(self, **plurals):
-        self.plurals = plurals
-        for a, b in permutations(plurals.values()):
-            setattr(self, a, defaultdict(set))
+    def __init__(self, asingular, aplural, bsingular, bplural):
+        self.singulars = (asingular, bsingular)
+        setattr(self, aplural, defaultdict(set))
+        setattr(self, bplural, defaultdict(set))
+        self.storages = (getattr(self, aplural), getattr(self, aplural))
 
-    def add(self, *pairs, **pair):
-        for (aname, avalue), (_, bvalue) in permutations(pair.items()):
-            getattr(self, self.plurals[aname])[avalue].add(bvalue)
+    def to_pair(self, named_pair):
+        pair = tuple(named_pair.get(n) for n in self.singulars)
+        return () if None in pair else (pair,)
 
-    def remove(self, *pairs, **pair):
-        for (aname, avalue), (_, bvalue) in permutations(pair.items()):
-            getattr(self, self.plurals[aname])[avalue].remove(bvalue)
+    def storage_value(self, *pair, pairs=(), **named_pair):
+        values = pairs + none_to_tuple(pair) + self.to_pair(named_pair)
+        return (
+            (self.storages[key_ind][vs[key_ind]], vs[val_ind])
+            for vs in values for key_ind, val_ind in ((0, 1), (1, 0))
+        )
+
+    def add(self, *pair, pairs=(), **named_pair):
+        for s, v in self.storage_value(pair, pairs, **named_pair):
+            s.add(v)
+
+    def remove(self, *pair, pairs=(), **named_pair):
+        for s, v in self.storage_value(pair, pairs, **named_pair):
+            s.remove(v)
+
+    def __contains__(self, pair):
+        return all(v in s for s, v in self.storage_value(*pair))

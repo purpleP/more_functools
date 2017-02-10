@@ -10,6 +10,10 @@ from more_functools import merge
 from more_functools import ManyToMany
 
 
+def call(*args, **kwargs):
+    return args, kwargs
+
+
 @pytest.fixture()
 def expected_dict():
     return {
@@ -145,13 +149,18 @@ def test_merge():
     assert {'a': {'b': 'b', 'c': 'c'}, 'c': 'c'} == merge(defaults, new)
 
 
-def test_manytomany():
-    m = ManyToMany(foo='foos', bar='bars')
-    m.add(foo=1, bar=10)
-    m.add(foo=1, bar=11)
-    m.add(foo=2, bar=10)
-    assert {10, 11} == m.foos[1]
-    assert {1, 2} == m.bars[10]
-    m.remove(foo=1, bar=10)
-    assert {11} == m.foos[1]
-    assert {2} == m.bars[10]
+@pytest.fixture
+def manytomany():
+    return ManyToMany('foo', 'foos', 'bar', 'bars')
+
+
+def test_manytomany_add(manytomany):
+    manytomany.add(foo=1, bar=10)
+    assert manytomany.foos[1] == {10}
+    assert (1, 10) in manytomany
+
+
+def test_manytomany_remove(manytomany):
+    manytomany.add(1, 2)
+    manytomany.remove(1, 2)
+    assert not (1, 2) in manytomany
