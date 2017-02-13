@@ -173,3 +173,12 @@ def test_manytomany_iter(manytomany):
     pairs = {(1, 'a'), (1, 'b'), (2, 'c')}
     manytomany.add(pairs=pairs)
     assert pairs == set(manytomany)
+
+
+def test_manytomany_init():
+    m = ManyToMany('foo', 'foos', 'bar', 'bars', 1, 'a')
+    assert (1, 'a') in m
+    m = ManyToMany('foo', 'foos', 'bar', 'bars', pairs=((1, 'a'),))
+    assert (1, 'a') in m
+    m = ManyToMany('foo', 'foos', 'bar', 'bars', foo=1, bar='a')
+    assert (1, 'a') in m

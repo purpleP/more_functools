@@ -161,11 +161,12 @@ def last(sequence):
 
 
 class ManyToMany:
-    def __init__(self, asingular, aplural, bsingular, bplural):
+    def __init__(self, asingular, aplural, bsingular, bplural, *pair, pairs=(), **named_pair):
         self.singulars = (asingular, bsingular)
         setattr(self, aplural, defaultdict(set))
         setattr(self, bplural, defaultdict(set))
         self.storages = (getattr(self, aplural), getattr(self, bplural))
+        self.add(*pair, pairs=pairs, **named_pair)
 
     def to_pair(self, named_pair):
         pair = tuple(named_pair.get(n) for n in self.singulars)
