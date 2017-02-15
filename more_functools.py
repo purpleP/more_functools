@@ -174,24 +174,29 @@ class ManyToMany:
 
     def storage_value(self, *pair, pairs=(), **named_pair):
         values = concat(pairs, ((pair,) if pair else ()), self.to_pair(named_pair))
-        return (
-            (self.storages[key_ind][vs[key_ind]], vs[val_ind])
+        storages = (
+            (self.storages[key_ind], vs[key_ind], vs[val_ind])
             for vs in values for key_ind, val_ind in ((0, 1), (1, 0))
+        )
+        return (
+            (st, key, st[key], value) for st, key, value in storages
         )
 
     def add(self, *pair, pairs=(), **named_pair):
-        for s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
+        for _, _, s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
             s.add(v)
 
     def remove(self, *pair, pairs=(), **named_pair):
-        for s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
+        for storage, key, s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
             s.remove(v)
+            if not s:
+                storage.pop(key)
 
     def __len__(self):
         return sum(map(len, self.storages[0].values())) * len(self.storages[0])
 
     def __contains__(self, pair):
-        return all(v in s for s, v in self.storage_value(*pair))
+        return all(v in s for _, _, s, v in self.storage_value(*pair))
 
     def __iter__(self):
         return ((k, v) for k, values in self.storages[0].items() for v in values)
