@@ -188,7 +188,8 @@ class ManyToMany:
 
     def remove(self, *pair, pairs=(), **named_pair):
         for storage, key, s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
-            s.remove(v)
+            if v in s:
+                s.remove(v)
             if not s:
                 storage.pop(key)
 
