@@ -111,7 +111,8 @@ def decorator_with_arguments(dec=None, funcarg='func'):
         sig = signature(dec)
         bounded_args = sig.bind_partial(*args, **kwargs)
         bounded_args.apply_defaults()
-        if funcarg in bounded_args.arguments:
+        func = bounded_args.arguments.get(funcarg, None)
+        if func:
             return dec(*args, **kwargs)
         else:
             return partial(wrapper, *args, **kwargs)
