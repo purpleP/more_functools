@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, wraps
 import pytest
 from more_functools import dict_structure, dict_to_set, set_to_dict, dmap
 from more_functools import or_default
@@ -8,6 +8,7 @@ from more_functools import unpack
 from more_functools import concat
 from more_functools import merge
 from more_functools import ManyToMany
+from more_functools import decorator_with_arguments
 
 
 def call(*args, **kwargs):
@@ -182,3 +183,21 @@ def test_manytomany_init():
     assert (1, 'a') in m
     m = ManyToMany('foo', 'foos', 'bar', 'bars', foo=1, bar='a')
     assert (1, 'a') in m
+
+
+@decorator_with_arguments
+def add_args(a, b, func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(a, b, *args, **kwargs)
+    return wrapper
+
+
+
+@add_args('a', 'b')
+def foo(*args):
+    return args
+
+
+def test_decorator_with_arguments():
+    assert 4 == len(foo('c', 'd'))

@@ -2,6 +2,8 @@
 from collections import namedtuple, defaultdict, Mapping, deque
 from functools import reduce
 from functools import wraps
+from functools import partial
+from inspect import signature
 from itertools import tee
 from itertools import islice
 from itertools import chain
@@ -99,6 +101,21 @@ def set_to_dict(s, structure):
 
 def replace(dct, key, new_value):
     return dict(chain(items(dct), ((key, new_value),)))
+
+
+def decorator_with_arguments(dec=None, funcarg='func'):
+    if not dec:
+        return partial(decorator_with_arguments, funcarg=funcarg)
+    @wraps(dec)
+    def wrapper(*args, **kwargs):
+        sig = signature(dec)
+        bounded_args = sig.bind_partial(*args, **kwargs)
+        bounded_args.apply_defaults()
+        if funcarg in bounded_args.arguments:
+            return dec(*args, **kwargs)
+        else:
+            return partial(wrapper, *args, **kwargs)
+    return wrapper
 
 
 def dmap(f, d, *path):
