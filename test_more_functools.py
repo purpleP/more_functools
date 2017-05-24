@@ -1,14 +1,21 @@
 from functools import partial, wraps
+
 import pytest
-from more_functools import dict_structure, dict_to_set, set_to_dict, dmap
-from more_functools import or_default
-from more_functools import replace
-from more_functools import compose
-from more_functools import unpack
-from more_functools import concat
-from more_functools import merge
-from more_functools import ManyToMany
-from more_functools import decorator_with_arguments
+
+from more_functools import (
+    ManyToMany,
+    compose,
+    concat,
+    curry,
+    dict_structure,
+    dict_to_set,
+    dmap,
+    merge,
+    or_default,
+    replace,
+    set_to_dict,
+    unpack,
+)
 
 
 def call(*args, **kwargs):
@@ -185,13 +192,12 @@ def test_manytomany_init():
     assert (1, 'a') in m
 
 
-@decorator_with_arguments
+@curry
 def add_args(a, b, func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         return func(a, b, *args, **kwargs)
     return wrapper
-
 
 
 @add_args('a', 'b')

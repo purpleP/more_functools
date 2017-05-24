@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
 
+
 setup(
     name='more_functools',
     description='more useful higher-order functions and stuff like that',

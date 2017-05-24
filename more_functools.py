@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple, defaultdict, Mapping, deque
-from functools import reduce
-from functools import wraps
-from functools import partial
+from collections import Mapping, defaultdict, deque, namedtuple
+from functools import partial, reduce, wraps
 from inspect import signature
-from itertools import tee
-from itertools import islice
-from itertools import chain
-from itertools import permutations
+from itertools import chain, islice, permutations, tee
 from operator import itemgetter
 
-from six import iteritems as items
-from six import iterkeys as keys
+from six import iteritems as items, iterkeys as keys
 from six.moves import zip_longest
 
 
@@ -101,6 +95,19 @@ def set_to_dict(s, structure):
 
 def replace(dct, key, new_value):
     return dict(chain(items(dct), ((key, new_value),)))
+
+
+def curry(func):
+    sig = signature(func)
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            bounded_args = sig.bind(*args, **kwargs)
+        except TypeError:
+            return partial(wrapper, *args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+    return wrapper
 
 
 def decorator_with_arguments(dec=None, funcarg='func'):
