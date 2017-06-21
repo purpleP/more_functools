@@ -97,12 +97,17 @@ def replace(dct, key, new_value):
     return dict(chain(items(dct), ((key, new_value),)))
 
 
-def curry(func):
+def curry(func=None, *required):
+    if not func:
+        return partial(curry, *required)
     sig = signature(func)
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             bounded_args = sig.bind(*args, **kwargs)
+            for param in required:
+                if param not in bounded_args:
+                    raise TypeError()
         except TypeError:
             return partial(wrapper, *args, **kwargs)
         else:
