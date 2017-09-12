@@ -3,7 +3,6 @@ from functools import partial, wraps
 import pytest
 
 from more_functools import (
-    ManyToMany,
     compose,
     concat,
     curry,
@@ -155,41 +154,6 @@ def test_merge():
     defaults = {'a': {'b': 'b'}, 'c': 'c'}
     new = {'a': {'c': 'c'}}
     assert {'a': {'b': 'b', 'c': 'c'}, 'c': 'c'} == merge(defaults, new)
-
-
-@pytest.fixture
-def manytomany():
-    return ManyToMany('foo', 'foos', 'bar', 'bars')
-
-
-def test_manytomany_add(manytomany):
-    assert len(manytomany) == 0
-    manytomany.add(foo=1, bar=10)
-    assert manytomany.foos[1] == {10}
-    assert (1, 10) in manytomany
-    assert len(manytomany) == 1
-
-
-def test_manytomany_remove(manytomany):
-    manytomany.add(1, 2)
-    manytomany.remove(1, 2)
-    assert not (1, 2) in manytomany
-    assert len(manytomany) == 0
-
-
-def test_manytomany_iter(manytomany):
-    pairs = {(1, 'a'), (1, 'b'), (2, 'c')}
-    manytomany.add(pairs=pairs)
-    assert pairs == set(manytomany)
-
-
-def test_manytomany_init():
-    m = ManyToMany('foo', 'foos', 'bar', 'bars', 1, 'a')
-    assert (1, 'a') in m
-    m = ManyToMany('foo', 'foos', 'bar', 'bars', pairs=((1, 'a'),))
-    assert (1, 'a') in m
-    m = ManyToMany('foo', 'foos', 'bar', 'bars', foo=1, bar='a')
-    assert (1, 'a') in m
 
 
 @curry

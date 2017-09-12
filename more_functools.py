@@ -105,29 +105,12 @@ def curry(func=None, *required):
     def wrapper(*args, **kwargs):
         try:
             bounded_args = sig.bind(*args, **kwargs)
-            for param in required:
-                if param not in bounded_args:
-                    raise TypeError()
+            if any(param not in bounded_args for param in required):
+                raise TypeError()
         except TypeError:
             return partial(wrapper, *args, **kwargs)
         else:
             return func(*args, **kwargs)
-    return wrapper
-
-
-def decorator_with_arguments(dec=None, funcarg='func'):
-    if not dec:
-        return partial(decorator_with_arguments, funcarg=funcarg)
-    @wraps(dec)
-    def wrapper(*args, **kwargs):
-        sig = signature(dec)
-        bounded_args = sig.bind_partial(*args, **kwargs)
-        bounded_args.apply_defaults()
-        func = bounded_args.arguments.get(funcarg, None)
-        if func:
-            return dec(*args, **kwargs)
-        else:
-            return partial(wrapper, *args, **kwargs)
     return wrapper
 
 
@@ -188,46 +171,3 @@ def merge(a, b, *path):
 
 def last(sequence):
     return deque(sequence, maxlen=1).pop()
-
-
-class ManyToMany:
-    def __init__(self, asingular, aplural, bsingular, bplural, *pair, pairs=(), **named_pair):
-        self.singulars = (asingular, bsingular)
-        setattr(self, aplural, defaultdict(set))
-        setattr(self, bplural, defaultdict(set))
-        self.storages = (getattr(self, aplural), getattr(self, bplural))
-        self.add(*pair, pairs=pairs, **named_pair)
-
-    def to_pair(self, named_pair):
-        pair = tuple(named_pair.get(n) for n in self.singulars)
-        return () if None in pair else (pair,)
-
-    def storage_value(self, *pair, pairs=(), **named_pair):
-        values = concat(pairs, ((pair,) if pair else ()), self.to_pair(named_pair))
-        storages = (
-            (self.storages[key_ind], vs[key_ind], vs[val_ind])
-            for vs in values for key_ind, val_ind in ((0, 1), (1, 0))
-        )
-        return (
-            (st, key, st[key], value) for st, key, value in storages
-        )
-
-    def add(self, *pair, pairs=(), **named_pair):
-        for _, _, s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
-            s.add(v)
-
-    def remove(self, *pair, pairs=(), **named_pair):
-        for storage, key, s, v in self.storage_value(*pair, pairs=pairs, **named_pair):
-            if v in s:
-                s.remove(v)
-            if not s:
-                storage.pop(key)
-
-    def __len__(self):
-        return sum(map(len, self.storages[0].values())) * len(self.storages[0])
-
-    def __contains__(self, pair):
-        return all(v in s for _, _, s, v in self.storage_value(*pair))
-
-    def __iter__(self):
-        return ((k, v) for k, values in self.storages[0].items() for v in values)
